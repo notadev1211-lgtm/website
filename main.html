@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html lang="en" style="--dark-bg: #0a0a0a; --orbit-color-primary: #ff00dd;"><head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Arcade Dashboard - Persistent Mode</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'primary-purple': 'var(--orbit-color-primary)',
+                        'dark-bg': 'var(--dark-bg)',
+                        'card-dark': 'var(--card-dark)',
+                        'admin-red': '#ef4444',
+                        'settings-pink': '#ec4899', 
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                }
+            }
+        }
+    </script>
+    <style>
+        :root {
+            --orbit-color-primary: #a855f7;
+            --orbit-color-secondary: #7c3aed;
+            --dark-bg: #0a0a0a;
+            --card-dark: #1c1917;
+        }
+
+        .animated-bg {
+            background-color: var(--dark-bg);
+            position: relative;
+            z-index: 1;
+        }
+        
+        .animated-bg::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at 10% 20%, rgba(100, 0, 150, 0.1) 0%, transparent 50%),
+                        radial-gradient(circle at 90% 80%, rgba(50, 0, 100, 0.15) 0%, transparent 50%),
+                        radial-gradient(circle at 50% 50%, rgba(20, 0, 50, 0.05) 0%, transparent 60%);
+            animation: slow-pan 30s linear infinite alternate;
+            z-index: -1;
+        }
+
+        @keyframes slow-pan {
+            0% { background-position: 0% 0%; }
+            100% { background-position: 100% 100%; }
+        }
+
+        .orbit-container {
+            position: relative;
+            padding: 2px;
+            border-radius: 12px;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+        .orbit-container button {
+            position: relative;
+            z-index: 10;
+            background-color: var(--card-dark);
+            color: white;
+            transition: all 0.3s ease;
+        }
+        .orbit-container::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: conic-gradient(
+                transparent, transparent, transparent, 
+                var(--orbit-color-primary), var(--orbit-color-secondary)
+            );
+            z-index: 0;
+            animation: orbit-rotation 4s linear infinite;
+        }
+        @keyframes orbit-rotation {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        .orbit-container:hover {
+            box-shadow: 0 0 10px var(--orbit-color-primary), 0 0 20px var(--orbit-color-secondary);
+        }
+        .orbit-container:hover::before {
+            animation-play-state: paused;
+            opacity: 1;
+        }
+        .orbit-container:hover button {
+            color: var(--orbit-color-primary);
+            background-color: var(--dark-bg);
+        }
+        
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.95);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 50;
+        }
+
+        #game-viewer {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: 100;
+            background: black;
+            display: none;
+            flex-direction: column;
+        }
+    </style>
+<style>*, ::before, ::after{--tw-border-spacing-x:0;--tw-border-spacing-y:0;--tw-translate-x:0;--tw-translate-y:0;--tw-rotate:0;--tw-skew-x:0;--tw-skew-y:0;--tw-scale-x:1;--tw-scale-y:1;--tw-pan-x: ;--tw-pan-y: ;--tw-pinch-zoom: ;--tw-scroll-snap-strictness:proximity;--tw-gradient-from-position: ;--tw-gradient-via-position: ;--tw-gradient-to-position: ;--tw-ordinal: ;--tw-slashed-zero: ;--tw-numeric-figure: ;--tw-numeric-spacing: ;--tw-numeric-fraction: ;--tw-ring-inset: ;--tw-ring-offset-width:0px;--tw-ring-offset-color:#fff;--tw-ring-color:rgb(59 130 246 / 0.5);--tw-ring-offset-shadow:0 0 #0000;--tw-ring-shadow:0 0 #0000;--tw-shadow:0 0 #0000;--tw-shadow-colored:0 0 #0000;--tw-blur: ;--tw-brightness: ;--tw-contrast: ;--tw-grayscale: ;--tw-hue-rotate: ;--tw-invert: ;--tw-saturate: ;--tw-sepia: ;--tw-drop-shadow: ;--tw-backdrop-blur: ;--tw-backdrop-brightness: ;--tw-backdrop-contrast: ;--tw-backdrop-grayscale: ;--tw-backdrop-hue-rotate: ;--tw-backdrop-invert: ;--tw-backdrop-opacity: ;--tw-backdrop-saturate: ;--tw-backdrop-sepia: ;--tw-contain-size: ;--tw-contain-layout: ;--tw-contain-paint: ;--tw-contain-style: }::backdrop{--tw-border-spacing-x:0;--tw-border-spacing-y:0;--tw-translate-x:0;--tw-translate-y:0;--tw-rotate:0;--tw-skew-x:0;--tw-skew-y:0;--tw-scale-x:1;--tw-scale-y:1;--tw-pan-x: ;--tw-pan-y: ;--tw-pinch-zoom: ;--tw-scroll-snap-strictness:proximity;--tw-gradient-from-position: ;--tw-gradient-via-position: ;--tw-gradient-to-position: ;--tw-ordinal: ;--tw-slashed-zero: ;--tw-numeric-figure: ;--tw-numeric-spacing: ;--tw-numeric-fraction: ;--tw-ring-inset: ;--tw-ring-offset-width:0px;--tw-ring-offset-color:#fff;--tw-ring-color:rgb(59 130 246 / 0.5);--tw-ring-offset-shadow:0 0 #0000;--tw-ring-shadow:0 0 #0000;--tw-shadow:0 0 #0000;--tw-shadow-colored:0 0 #0000;--tw-blur: ;--tw-brightness: ;--tw-contrast: ;--tw-grayscale: ;--tw-hue-rotate: ;--tw-invert: ;--tw-saturate: ;--tw-sepia: ;--tw-drop-shadow: ;--tw-backdrop-blur: ;--tw-backdrop-brightness: ;--tw-backdrop-contrast: ;--tw-backdrop-grayscale: ;--tw-backdrop-hue-rotate: ;--tw-backdrop-invert: ;--tw-backdrop-opacity: ;--tw-backdrop-saturate: ;--tw-backdrop-sepia: ;--tw-contain-size: ;--tw-contain-layout: ;--tw-contain-paint: ;--tw-contain-style: }/* ! tailwindcss v3.4.17 | MIT License | https://tailwindcss.com */*,::after,::before{box-sizing:border-box;border-width:0;border-style:solid;border-color:#e5e7eb}::after,::before{--tw-content:''}:host,html{line-height:1.5;-webkit-text-size-adjust:100%;-moz-tab-size:4;tab-size:4;font-family:Inter, sans-serif;font-feature-settings:normal;font-variation-settings:normal;-webkit-tap-highlight-color:transparent}body{margin:0;line-height:inherit}hr{height:0;color:inherit;border-top-width:1px}abbr:where([title]){-webkit-text-decoration:underline dotted;text-decoration:underline dotted}h1,h2,h3,h4,h5,h6{font-size:inherit;font-weight:inherit}a{color:inherit;text-decoration:inherit}b,strong{font-weight:bolder}code,kbd,pre,samp{font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;font-feature-settings:normal;font-variation-settings:normal;font-size:1em}small{font-size:80%}sub,sup{font-size:75%;line-height:0;position:relative;vertical-align:baseline}sub{bottom:-.25em}sup{top:-.5em}table{text-indent:0;border-color:inherit;border-collapse:collapse}button,input,optgroup,select,textarea{font-family:inherit;font-feature-settings:inherit;font-variation-settings:inherit;font-size:100%;font-weight:inherit;line-height:inherit;letter-spacing:inherit;color:inherit;margin:0;padding:0}button,select{text-transform:none}button,input:where([type=button]),input:where([type=reset]),input:where([type=submit]){-webkit-appearance:button;background-color:transparent;background-image:none}:-moz-focusring{outline:auto}:-moz-ui-invalid{box-shadow:none}progress{vertical-align:baseline}::-webkit-inner-spin-button,::-webkit-outer-spin-button{height:auto}[type=search]{-webkit-appearance:textfield;outline-offset:-2px}::-webkit-search-decoration{-webkit-appearance:none}::-webkit-file-upload-button{-webkit-appearance:button;font:inherit}summary{display:list-item}blockquote,dd,dl,figure,h1,h2,h3,h4,h5,h6,hr,p,pre{margin:0}fieldset{margin:0;padding:0}legend{padding:0}menu,ol,ul{list-style:none;margin:0;padding:0}dialog{padding:0}textarea{resize:vertical}input::placeholder,textarea::placeholder{opacity:1;color:#9ca3af}[role=button],button{cursor:pointer}:disabled{cursor:default}audio,canvas,embed,iframe,img,object,svg,video{display:block;vertical-align:middle}img,video{max-width:100%;height:auto}[hidden]:where(:not([hidden=until-found])){display:none}.mx-auto{margin-left:auto;margin-right:auto}.mb-10{margin-bottom:2.5rem}.mb-8{margin-bottom:2rem}.ml-4{margin-left:1rem}.mt-1{margin-top:0.25rem}.mt-12{margin-top:3rem}.mt-2{margin-top:0.5rem}.mb-6{margin-bottom:1.5rem}.mt-8{margin-top:2rem}.mt-4{margin-top:1rem}.mb-2{margin-bottom:0.5rem}.mb-3{margin-bottom:0.75rem}.mb-4{margin-bottom:1rem}.ml-2{margin-left:0.5rem}.flex{display:flex}.grid{display:grid}.hidden{display:none}.h-full{height:100%}.h-5{height:1.25rem}.h-4{height:1rem}.max-h-\[90vh\]{max-height:90vh}.max-h-48{max-height:12rem}.min-h-screen{min-height:100vh}.w-full{width:100%}.w-4{width:1rem}.max-w-7xl{max-width:80rem}.max-w-lg{max-width:32rem}.max-w-sm{max-width:24rem}.max-w-3xl{max-width:48rem}.grid-cols-2{grid-template-columns:repeat(2, minmax(0, 1fr))}.items-center{align-items:center}.justify-end{justify-content:flex-end}.justify-between{justify-content:space-between}.gap-2{gap:0.5rem}.gap-4{gap:1rem}.gap-8{gap:2rem}.space-y-3 > :not([hidden]) ~ :not([hidden]){--tw-space-y-reverse:0;margin-top:calc(0.75rem * calc(1 - var(--tw-space-y-reverse)));margin-bottom:calc(0.75rem * var(--tw-space-y-reverse))}.overflow-y-auto{overflow-y:auto}.rounded{border-radius:0.25rem}.rounded-lg{border-radius:0.5rem}.rounded-xl{border-radius:0.75rem}.border{border-width:1px}.border-b{border-bottom-width:1px}.border-b-2{border-bottom-width:2px}.border-t{border-top-width:1px}.border-none{border-style:none}.border-admin-red\/50{border-color:rgb(239 68 68 / 0.5)}.border-settings-pink\/50{border-color:rgb(236 72 153 / 0.5)}.border-gray-700{--tw-border-opacity:1;border-color:rgb(55 65 81 / var(--tw-border-opacity, 1))}.bg-admin-red{--tw-bg-opacity:1;background-color:rgb(239 68 68 / var(--tw-bg-opacity, 1))}.bg-card-dark{background-color:var(--card-dark)}.bg-primary-purple{background-color:var(--orbit-color-primary)}.bg-dark-bg{background-color:var(--dark-bg)}.bg-green-600{--tw-bg-opacity:1;background-color:rgb(22 163 74 / var(--tw-bg-opacity, 1))}.bg-gradient-to-r{background-image:linear-gradient(to right, var(--tw-gradient-stops))}.from-primary-purple{--tw-gradient-from:var(--orbit-color-primary) var(--tw-gradient-from-position);--tw-gradient-to:rgb(255 255 255 / 0) var(--tw-gradient-to-position);--tw-gradient-stops:var(--tw-gradient-from), var(--tw-gradient-to)}.to-pink-500{--tw-gradient-to:#ec4899 var(--tw-gradient-to-position)}.bg-clip-text{-webkit-background-clip:text;background-clip:text}.p-2{padding:0.5rem}.p-4{padding:1rem}.p-8{padding:2rem}.p-3{padding:0.75rem}.px-4{padding-left:1rem;padding-right:1rem}.py-1{padding-top:0.25rem;padding-bottom:0.25rem}.py-8{padding-top:2rem;padding-bottom:2rem}.px-6{padding-left:1.5rem;padding-right:1.5rem}.py-2{padding-top:0.5rem;padding-bottom:0.5rem}.px-3{padding-left:0.75rem;padding-right:0.75rem}.py-4{padding-top:1rem;padding-bottom:1rem}.py-3{padding-top:0.75rem;padding-bottom:0.75rem}.pt-8{padding-top:2rem}.pr-2{padding-right:0.5rem}.text-center{text-align:center}.font-sans{font-family:Inter, sans-serif}.font-mono{font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace}.text-4xl{font-size:2.25rem;line-height:2.5rem}.text-lg{font-size:1.125rem;line-height:1.75rem}.text-sm{font-size:0.875rem;line-height:1.25rem}.text-xs{font-size:0.75rem;line-height:1rem}.text-3xl{font-size:1.875rem;line-height:2.25rem}.text-\[10px\]{font-size:10px}.text-2xl{font-size:1.5rem;line-height:2rem}.font-bold{font-weight:700}.font-extrabold{font-weight:800}.font-semibold{font-weight:600}.uppercase{text-transform:uppercase}.tracking-wider{letter-spacing:0.05em}.text-gray-500{--tw-text-opacity:1;color:rgb(107 114 128 / var(--tw-text-opacity, 1))}.text-green-400{--tw-text-opacity:1;color:rgb(74 222 128 / var(--tw-text-opacity, 1))}.text-primary-purple{color:var(--orbit-color-primary)}.text-transparent{color:transparent}.text-white{--tw-text-opacity:1;color:rgb(255 255 255 / var(--tw-text-opacity, 1))}.text-red-400{--tw-text-opacity:1;color:rgb(248 113 113 / var(--tw-text-opacity, 1))}.text-admin-red{--tw-text-opacity:1;color:rgb(239 68 68 / var(--tw-text-opacity, 1))}.text-settings-pink{--tw-text-opacity:1;color:rgb(236 72 153 / var(--tw-text-opacity, 1))}.text-gray-300{--tw-text-opacity:1;color:rgb(209 213 219 / var(--tw-text-opacity, 1))}.text-gray-400{--tw-text-opacity:1;color:rgb(156 163 175 / var(--tw-text-opacity, 1))}.shadow-2xl{--tw-shadow:0 25px 50px -12px rgb(0 0 0 / 0.25);--tw-shadow-colored:0 25px 50px -12px var(--tw-shadow-color);box-shadow:var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow)}.transition-colors{transition-property:color, background-color, border-color, fill, stroke, -webkit-text-decoration-color;transition-property:color, background-color, border-color, text-decoration-color, fill, stroke;transition-property:color, background-color, border-color, text-decoration-color, fill, stroke, -webkit-text-decoration-color;transition-timing-function:cubic-bezier(0.4, 0, 0.2, 1);transition-duration:150ms}.duration-500{transition-duration:500ms}.hover\:bg-red-700:hover{--tw-bg-opacity:1;background-color:rgb(185 28 28 / var(--tw-bg-opacity, 1))}.hover\:bg-violet-700:hover{--tw-bg-opacity:1;background-color:rgb(109 40 217 / var(--tw-bg-opacity, 1))}.hover\:bg-admin-red\/10:hover{background-color:rgb(239 68 68 / 0.1)}.hover\:bg-settings-pink\/10:hover{background-color:rgb(236 72 153 / 0.1)}.hover\:bg-green-700:hover{--tw-bg-opacity:1;background-color:rgb(21 128 61 / var(--tw-bg-opacity, 1))}@media (min-width: 640px){.sm\:grid-cols-3{grid-template-columns:repeat(3, minmax(0, 1fr))}.sm\:gap-6{gap:1.5rem}.sm\:p-8{padding:2rem}.sm\:text-6xl{font-size:3.75rem;line-height:1}.sm\:text-base{font-size:1rem;line-height:1.5rem}}@media (min-width: 768px){.md\:grid-cols-2{grid-template-columns:repeat(2, minmax(0, 1fr))}}@media (min-width: 1024px){.lg\:grid-cols-4{grid-template-columns:repeat(4, minmax(0, 1fr))}}@media (min-width: 1280px){.xl\:grid-cols-5{grid-template-columns:repeat(5, minmax(0, 1fr))}}</style><style>*, ::before, ::after{--tw-border-spacing-x:0;--tw-border-spacing-y:0;--tw-translate-x:0;--tw-translate-y:0;--tw-rotate:0;--tw-skew-x:0;--tw-skew-y:0;--tw-scale-x:1;--tw-scale-y:1;--tw-pan-x: ;--tw-pan-y: ;--tw-pinch-zoom: ;--tw-scroll-snap-strictness:proximity;--tw-gradient-from-position: ;--tw-gradient-via-position: ;--tw-gradient-to-position: ;--tw-ordinal: ;--tw-slashed-zero: ;--tw-numeric-figure: ;--tw-numeric-spacing: ;--tw-numeric-fraction: ;--tw-ring-inset: ;--tw-ring-offset-width:0px;--tw-ring-offset-color:#fff;--tw-ring-color:rgb(59 130 246 / 0.5);--tw-ring-offset-shadow:0 0 #0000;--tw-ring-shadow:0 0 #0000;--tw-shadow:0 0 #0000;--tw-shadow-colored:0 0 #0000;--tw-blur: ;--tw-brightness: ;--tw-contrast: ;--tw-grayscale: ;--tw-hue-rotate: ;--tw-invert: ;--tw-saturate: ;--tw-sepia: ;--tw-drop-shadow: ;--tw-backdrop-blur: ;--tw-backdrop-brightness: ;--tw-backdrop-contrast: ;--tw-backdrop-grayscale: ;--tw-backdrop-hue-rotate: ;--tw-backdrop-invert: ;--tw-backdrop-opacity: ;--tw-backdrop-saturate: ;--tw-backdrop-sepia: ;--tw-contain-size: ;--tw-contain-layout: ;--tw-contain-paint: ;--tw-contain-style: }::backdrop{--tw-border-spacing-x:0;--tw-border-spacing-y:0;--tw-translate-x:0;--tw-translate-y:0;--tw-rotate:0;--tw-skew-x:0;--tw-skew-y:0;--tw-scale-x:1;--tw-scale-y:1;--tw-pan-x: ;--tw-pan-y: ;--tw-pinch-zoom: ;--tw-scroll-snap-strictness:proximity;--tw-gradient-from-position: ;--tw-gradient-via-position: ;--tw-gradient-to-position: ;--tw-ordinal: ;--tw-slashed-zero: ;--tw-numeric-figure: ;--tw-numeric-spacing: ;--tw-numeric-fraction: ;--tw-ring-inset: ;--tw-ring-offset-width:0px;--tw-ring-offset-color:#fff;--tw-ring-color:rgb(59 130 246 / 0.5);--tw-ring-offset-shadow:0 0 #0000;--tw-ring-shadow:0 0 #0000;--tw-shadow:0 0 #0000;--tw-shadow-colored:0 0 #0000;--tw-blur: ;--tw-brightness: ;--tw-contrast: ;--tw-grayscale: ;--tw-hue-rotate: ;--tw-invert: ;--tw-saturate: ;--tw-sepia: ;--tw-drop-shadow: ;--tw-backdrop-blur: ;--tw-backdrop-brightness: ;--tw-backdrop-contrast: ;--tw-backdrop-grayscale: ;--tw-backdrop-hue-rotate: ;--tw-backdrop-invert: ;--tw-backdrop-opacity: ;--tw-backdrop-saturate: ;--tw-backdrop-sepia: ;--tw-contain-size: ;--tw-contain-layout: ;--tw-contain-paint: ;--tw-contain-style: }/* ! tailwindcss v3.4.17 | MIT License | https://tailwindcss.com */*,::after,::before{box-sizing:border-box;border-width:0;border-style:solid;border-color:#e5e7eb}::after,::before{--tw-content:''}:host,html{line-height:1.5;-webkit-text-size-adjust:100%;-moz-tab-size:4;tab-size:4;font-family:Inter, sans-serif;font-feature-settings:normal;font-variation-settings:normal;-webkit-tap-highlight-color:transparent}body{margin:0;line-height:inherit}hr{height:0;color:inherit;border-top-width:1px}abbr:where([title]){-webkit-text-decoration:underline dotted;text-decoration:underline dotted}h1,h2,h3,h4,h5,h6{font-size:inherit;font-weight:inherit}a{color:inherit;text-decoration:inherit}b,strong{font-weight:bolder}code,kbd,pre,samp{font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;font-feature-settings:normal;font-variation-settings:normal;font-size:1em}small{font-size:80%}sub,sup{font-size:75%;line-height:0;position:relative;vertical-align:baseline}sub{bottom:-.25em}sup{top:-.5em}table{text-indent:0;border-color:inherit;border-collapse:collapse}button,input,optgroup,select,textarea{font-family:inherit;font-feature-settings:inherit;font-variation-settings:inherit;font-size:100%;font-weight:inherit;line-height:inherit;letter-spacing:inherit;color:inherit;margin:0;padding:0}button,select{text-transform:none}button,input:where([type=button]),input:where([type=reset]),input:where([type=submit]){-webkit-appearance:button;background-color:transparent;background-image:none}:-moz-focusring{outline:auto}:-moz-ui-invalid{box-shadow:none}progress{vertical-align:baseline}::-webkit-inner-spin-button,::-webkit-outer-spin-button{height:auto}[type=search]{-webkit-appearance:textfield;outline-offset:-2px}::-webkit-search-decoration{-webkit-appearance:none}::-webkit-file-upload-button{-webkit-appearance:button;font:inherit}summary{display:list-item}blockquote,dd,dl,figure,h1,h2,h3,h4,h5,h6,hr,p,pre{margin:0}fieldset{margin:0;padding:0}legend{padding:0}menu,ol,ul{list-style:none;margin:0;padding:0}dialog{padding:0}textarea{resize:vertical}input::placeholder,textarea::placeholder{opacity:1;color:#9ca3af}[role=button],button{cursor:pointer}:disabled{cursor:default}audio,canvas,embed,iframe,img,object,svg,video{display:block;vertical-align:middle}img,video{max-width:100%;height:auto}[hidden]:where(:not([hidden=until-found])){display:none}.mx-auto{margin-left:auto;margin-right:auto}.mb-10{margin-bottom:2.5rem}.mb-8{margin-bottom:2rem}.ml-4{margin-left:1rem}.mt-1{margin-top:0.25rem}.mt-12{margin-top:3rem}.mt-2{margin-top:0.5rem}.mb-2{margin-bottom:0.5rem}.mb-3{margin-bottom:0.75rem}.mb-4{margin-bottom:1rem}.mb-6{margin-bottom:1.5rem}.ml-2{margin-left:0.5rem}.mt-8{margin-top:2rem}.mt-4{margin-top:1rem}.flex{display:flex}.grid{display:grid}.hidden{display:none}.h-full{height:100%}.h-4{height:1rem}.h-5{height:1.25rem}.max-h-48{max-height:12rem}.max-h-\[90vh\]{max-height:90vh}.min-h-screen{min-height:100vh}.w-full{width:100%}.w-4{width:1rem}.max-w-7xl{max-width:80rem}.max-w-3xl{max-width:48rem}.max-w-sm{max-width:24rem}.grid-cols-2{grid-template-columns:repeat(2, minmax(0, 1fr))}.items-center{align-items:center}.justify-end{justify-content:flex-end}.justify-between{justify-content:space-between}.gap-2{gap:0.5rem}.gap-4{gap:1rem}.gap-8{gap:2rem}.space-y-3 > :not([hidden]) ~ :not([hidden]){--tw-space-y-reverse:0;margin-top:calc(0.75rem * calc(1 - var(--tw-space-y-reverse)));margin-bottom:calc(0.75rem * var(--tw-space-y-reverse))}.overflow-y-auto{overflow-y:auto}.rounded{border-radius:0.25rem}.rounded-lg{border-radius:0.5rem}.rounded-xl{border-radius:0.75rem}.border{border-width:1px}.border-b{border-bottom-width:1px}.border-b-2{border-bottom-width:2px}.border-t{border-top-width:1px}.border-none{border-style:none}.border-admin-red\/50{border-color:rgb(239 68 68 / 0.5)}.border-settings-pink\/50{border-color:rgb(236 72 153 / 0.5)}.border-gray-700{--tw-border-opacity:1;border-color:rgb(55 65 81 / var(--tw-border-opacity, 1))}.bg-admin-red{--tw-bg-opacity:1;background-color:rgb(239 68 68 / var(--tw-bg-opacity, 1))}.bg-card-dark{background-color:var(--card-dark)}.bg-primary-purple{background-color:var(--orbit-color-primary)}.bg-dark-bg{background-color:var(--dark-bg)}.bg-green-600{--tw-bg-opacity:1;background-color:rgb(22 163 74 / var(--tw-bg-opacity, 1))}.bg-gradient-to-r{background-image:linear-gradient(to right, var(--tw-gradient-stops))}.from-primary-purple{--tw-gradient-from:var(--orbit-color-primary) var(--tw-gradient-from-position);--tw-gradient-to:rgb(255 255 255 / 0) var(--tw-gradient-to-position);--tw-gradient-stops:var(--tw-gradient-from), var(--tw-gradient-to)}.to-pink-500{--tw-gradient-to:#ec4899 var(--tw-gradient-to-position)}.bg-clip-text{-webkit-background-clip:text;background-clip:text}.p-2{padding:0.5rem}.p-4{padding:1rem}.p-3{padding:0.75rem}.p-8{padding:2rem}.px-3{padding-left:0.75rem;padding-right:0.75rem}.px-4{padding-left:1rem;padding-right:1rem}.py-1{padding-top:0.25rem;padding-bottom:0.25rem}.py-2{padding-top:0.5rem;padding-bottom:0.5rem}.py-4{padding-top:1rem;padding-bottom:1rem}.py-8{padding-top:2rem;padding-bottom:2rem}.px-6{padding-left:1.5rem;padding-right:1.5rem}.py-3{padding-top:0.75rem;padding-bottom:0.75rem}.pt-8{padding-top:2rem}.pr-2{padding-right:0.5rem}.text-center{text-align:center}.font-sans{font-family:Inter, sans-serif}.font-mono{font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace}.text-4xl{font-size:2.25rem;line-height:2.5rem}.text-\[10px\]{font-size:10px}.text-lg{font-size:1.125rem;line-height:1.75rem}.text-sm{font-size:0.875rem;line-height:1.25rem}.text-xs{font-size:0.75rem;line-height:1rem}.text-2xl{font-size:1.5rem;line-height:2rem}.text-3xl{font-size:1.875rem;line-height:2.25rem}.font-bold{font-weight:700}.font-extrabold{font-weight:800}.font-semibold{font-weight:600}.uppercase{text-transform:uppercase}.tracking-wider{letter-spacing:0.05em}.text-admin-red{--tw-text-opacity:1;color:rgb(239 68 68 / var(--tw-text-opacity, 1))}.text-gray-500{--tw-text-opacity:1;color:rgb(107 114 128 / var(--tw-text-opacity, 1))}.text-green-400{--tw-text-opacity:1;color:rgb(74 222 128 / var(--tw-text-opacity, 1))}.text-primary-purple{color:var(--orbit-color-primary)}.text-settings-pink{--tw-text-opacity:1;color:rgb(236 72 153 / var(--tw-text-opacity, 1))}.text-transparent{color:transparent}.text-white{--tw-text-opacity:1;color:rgb(255 255 255 / var(--tw-text-opacity, 1))}.text-gray-300{--tw-text-opacity:1;color:rgb(209 213 219 / var(--tw-text-opacity, 1))}.text-gray-400{--tw-text-opacity:1;color:rgb(156 163 175 / var(--tw-text-opacity, 1))}.text-red-400{--tw-text-opacity:1;color:rgb(248 113 113 / var(--tw-text-opacity, 1))}.shadow-2xl{--tw-shadow:0 25px 50px -12px rgb(0 0 0 / 0.25);--tw-shadow-colored:0 25px 50px -12px var(--tw-shadow-color);box-shadow:var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow)}.transition-colors{transition-property:color, background-color, border-color, fill, stroke, -webkit-text-decoration-color;transition-property:color, background-color, border-color, text-decoration-color, fill, stroke;transition-property:color, background-color, border-color, text-decoration-color, fill, stroke, -webkit-text-decoration-color;transition-timing-function:cubic-bezier(0.4, 0, 0.2, 1);transition-duration:150ms}.duration-500{transition-duration:500ms}.hover\:bg-admin-red\/10:hover{background-color:rgb(239 68 68 / 0.1)}.hover\:bg-red-700:hover{--tw-bg-opacity:1;background-color:rgb(185 28 28 / var(--tw-bg-opacity, 1))}.hover\:bg-settings-pink\/10:hover{background-color:rgb(236 72 153 / 0.1)}.hover\:bg-violet-700:hover{--tw-bg-opacity:1;background-color:rgb(109 40 217 / var(--tw-bg-opacity, 1))}.hover\:bg-green-700:hover{--tw-bg-opacity:1;background-color:rgb(21 128 61 / var(--tw-bg-opacity, 1))}@media (min-width: 640px){.sm\:grid-cols-3{grid-template-columns:repeat(3, minmax(0, 1fr))}.sm\:gap-6{gap:1.5rem}.sm\:p-8{padding:2rem}.sm\:text-6xl{font-size:3.75rem;line-height:1}.sm\:text-base{font-size:1rem;line-height:1.5rem}}@media (min-width: 768px){.md\:grid-cols-2{grid-template-columns:repeat(2, minmax(0, 1fr))}}@media (min-width: 1024px){.lg\:grid-cols-4{grid-template-columns:repeat(4, minmax(0, 1fr))}}@media (min-width: 1280px){.xl\:grid-cols-5{grid-template-columns:repeat(5, minmax(0, 1fr))}}</style></head>
+
+<body id="dashboard-body" class="animated-bg text-white font-sans min-h-screen p-4 sm:p-8 transition-colors duration-500" style="overflow: auto;">
+
+    <div id="main-content" class="max-w-7xl mx-auto">
+        <header class="text-center py-8 mb-10 border-b-2 border-primary-purple/50">
+            <h1 class="text-4xl sm:text-6xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-primary-purple to-pink-500">
+                Arcade Launchpad
+            </h1>
+            <p class="mt-2 text-primary-purple/70 text-lg">Select a destination</p>
+            <p class="mt-1 text-xs text-green-400 font-bold">MODE: PERSISTENT</p>
+        </header>
+        
+        <div id="admin-controls-bar" class="flex justify-end gap-4 mb-8"><button onclick="showSettingsModal()" class="px-4 py-2 text-sm bg-card-dark text-settings-pink border border-settings-pink/50 rounded-lg font-semibold hover:bg-settings-pink/10 transition-colors">SETTINGS</button><button onclick="showAdminModal()" class="px-4 py-2 text-sm bg-card-dark text-admin-red border border-admin-red/50 rounded-lg font-semibold hover:bg-admin-red/10 transition-colors">ADMIN PANEL</button></div>
+        <div id="button-grid" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 sm:gap-6">
+                    <div class="orbit-container shadow-2xl shadow-primary-purple/10">
+                        <button class="w-full h-full text-center py-4 px-3 rounded-xl font-semibold uppercase tracking-wider text-sm sm:text-base" onclick="launchItem('1768591901032')">
+                            undertale
+                            <br><span class="text-[10px] text-green-400">[IN-PAGE]</span>
+                        </button>
+                    </div>
+                    <div class="orbit-container shadow-2xl shadow-primary-purple/10">
+                        <button class="w-full h-full text-center py-4 px-3 rounded-xl font-semibold uppercase tracking-wider text-sm sm:text-base" onclick="launchItem('1768592182489')">
+                            FULL MINECRAFT
+                            <br><span class="text-[10px] text-green-400">[IN-PAGE]</span>
+                        </button>
+                    </div>
+                    <div class="orbit-container shadow-2xl shadow-primary-purple/10">
+                        <button class="w-full h-full text-center py-4 px-3 rounded-xl font-semibold uppercase tracking-wider text-sm sm:text-base" onclick="launchItem('1768592194801')">
+                            crossy road
+                            <br><span class="text-[10px] text-green-400">[IN-PAGE]</span>
+                        </button>
+                    </div>
+                    <div class="orbit-container shadow-2xl shadow-primary-purple/10">
+                        <button class="w-full h-full text-center py-4 px-3 rounded-xl font-semibold uppercase tracking-wider text-sm sm:text-base" onclick="launchItem('1768592208034')">
+                            paper-io
+                            <br><span class="text-[10px] text-green-400">[IN-PAGE]</span>
+                        </button>
+                    </div>
+                    <div class="orbit-container shadow-2xl shadow-primary-purple/10">
+                        <button class="w-full h-full text-center py-4 px-3 rounded-xl font-semibold uppercase tracking-wider text-sm sm:text-base" onclick="launchItem('1768592217891')">
+                            drive-mad
+                            <br><span class="text-[10px] text-green-400">[IN-PAGE]</span>
+                        </button>
+                    </div>
+                    <div class="orbit-container shadow-2xl shadow-primary-purple/10">
+                        <button class="w-full h-full text-center py-4 px-3 rounded-xl font-semibold uppercase tracking-wider text-sm sm:text-base" onclick="launchItem('1768592261016')">
+                            flappy bird
+                            <br><span class="text-[10px] text-green-400">[IN-PAGE]</span>
+                        </button>
+                    </div>
+                    <div class="orbit-container shadow-2xl shadow-primary-purple/10">
+                        <button class="w-full h-full text-center py-4 px-3 rounded-xl font-semibold uppercase tracking-wider text-sm sm:text-base" onclick="launchItem('1768592271727')">
+                            slope
+                            <br><span class="text-[10px] text-green-400">[IN-PAGE]</span>
+                        </button>
+                    </div></div>
+        
+        <footer class="text-center mt-12 pt-8 text-gray-500 text-sm border-t border-primary-purple/20">
+            <p>© 2024 Launchpad. Use Admin Panel to save changes.</p>
+        </footer>
+    </div>
+
+    <div id="game-viewer" style="display: none;">
+        <div class="p-2 bg-card-dark border-b border-primary-purple/30 flex justify-between items-center">
+            <span id="viewer-title" class="font-bold text-primary-purple ml-4">paper io</span>
+            <div class="flex gap-2">
+                <button onclick="requestFullScreen()" class="px-4 py-1 bg-primary-purple hover:bg-violet-700 rounded text-white font-bold transition-colors text-xs">FULLSCREEN</button>
+                <button onclick="closeGame()" class="px-4 py-1 bg-admin-red hover:bg-red-700 rounded text-white font-bold transition-colors text-xs">EXIT</button>
+            </div>
+        </div>
+        <iframe id="game-frame" class="w-full h-full border-none" src="" allowfullscreen="true"></iframe>
+    </div>
+
+    <div id="main-modal" class="modal-overlay">
+        <div id="modal-container" class="bg-card-dark p-8 rounded-xl shadow-2xl w-full max-w-3xl border border-primary-purple/50 overflow-y-auto max-h-[90vh]">
+            <h2 id="modal-title" class="text-3xl font-bold mb-6 text-primary-purple">Admin Control Panel</h2>
+            <div id="modal-content">
+                <div class="grid md:grid-cols-2 gap-8">
+                    <div>
+                        <h3 class="text-2xl font-semibold mb-4 text-primary-purple">1. Manage Buttons</h3>
+                        <ul class="space-y-3 mb-6 max-h-48 overflow-y-auto pr-2"><li class="flex justify-between items-center p-3 bg-dark-bg rounded-lg border border-primary-purple/20">
+                    <div><div class="font-semibold text-sm">undertale</div></div>
+                    <button onclick="deleteButton('1768591901032')" class="text-admin-red">DEL</button>
+                </li><li class="flex justify-between items-center p-3 bg-dark-bg rounded-lg border border-primary-purple/20">
+                    <div><div class="font-semibold text-sm">FULL MINECRAFT</div></div>
+                    <button onclick="deleteButton('1768592182489')" class="text-admin-red">DEL</button>
+                </li><li class="flex justify-between items-center p-3 bg-dark-bg rounded-lg border border-primary-purple/20">
+                    <div><div class="font-semibold text-sm">crossy road</div></div>
+                    <button onclick="deleteButton('1768592194801')" class="text-admin-red">DEL</button>
+                </li><li class="flex justify-between items-center p-3 bg-dark-bg rounded-lg border border-primary-purple/20">
+                    <div><div class="font-semibold text-sm">paper-io</div></div>
+                    <button onclick="deleteButton('1768592208034')" class="text-admin-red">DEL</button>
+                </li><li class="flex justify-between items-center p-3 bg-dark-bg rounded-lg border border-primary-purple/20">
+                    <div><div class="font-semibold text-sm">drive-mad</div></div>
+                    <button onclick="deleteButton('1768592217891')" class="text-admin-red">DEL</button>
+                </li><li class="flex justify-between items-center p-3 bg-dark-bg rounded-lg border border-primary-purple/20">
+                    <div><div class="font-semibold text-sm">flappy bird</div></div>
+                    <button onclick="deleteButton('1768592261016')" class="text-admin-red">DEL</button>
+                </li><li class="flex justify-between items-center p-3 bg-dark-bg rounded-lg border border-primary-purple/20">
+                    <div><div class="font-semibold text-sm">slope</div></div>
+                    <button onclick="deleteButton('1768592271727')" class="text-admin-red">DEL</button>
+                </li></ul>
+                <div class="bg-dark-bg p-4 rounded-lg border border-primary-purple/30">
+                    <input type="text" id="newButtonName" placeholder="Name" class="w-full p-2 mb-2 rounded bg-card-dark text-white text-sm border border-gray-700">
+                    <input type="url" id="newButtonUrl" placeholder="URL" class="w-full p-2 mb-2 rounded bg-card-dark text-white text-sm border border-gray-700">
+                    <div class="flex items-center mb-3">
+                        <input type="checkbox" id="newButtonStay" class="h-4 w-4">
+                        <label for="newButtonStay" class="ml-2 text-xs text-green-400 font-bold">STAY IN PAGE</label>
+                    </div>
+                    <button onclick="addButton()" class="w-full py-2 bg-primary-purple rounded font-bold">Add Button</button>
+                </div>
+                    </div>
+                    <div>
+                        <h3 class="text-2xl font-semibold mb-4 text-primary-purple">2. Access Keys</h3>
+                        <ul class="space-y-3 mb-6 max-h-48 overflow-y-auto pr-2"><li class="flex justify-between items-center p-3 bg-dark-bg rounded-lg border border-primary-purple/20">
+                    <span class="font-mono text-sm text-gray-300">admin123</span>
+                    <button onclick="deleteKey('admin123')" class="text-admin-red">DEL</button>
+                </li><li class="flex justify-between items-center p-3 bg-dark-bg rounded-lg border border-primary-purple/20">
+                    <span class="font-mono text-sm text-gray-300">ethan123</span>
+                    <button onclick="deleteKey('ethan123')" class="text-admin-red">DEL</button>
+                </li></ul><div class="bg-dark-bg p-4 rounded-lg"><input type="text" id="newKey" placeholder="Key" class="w-full p-2 mb-2 rounded bg-card-dark text-white text-sm border border-gray-700"><button onclick="addKey()" class="w-full py-2 bg-primary-purple rounded font-bold">Add Key</button></div>
+                        <h3 class="text-2xl font-semibold mt-8 mb-4 text-primary-purple">3. Backup HTML</h3>
+                        <p class="text-xs text-gray-400 mb-2">This saves ALL current buttons into the file permanently.</p>
+                        <button onclick="downloadHtml()" class="w-full px-6 py-3 bg-green-600 hover:bg-green-700 rounded-lg font-semibold">Download File</button>
+                    </div>
+                </div></div>
+            <div id="modal-footer" class="flex justify-end mt-8">
+                <button id="modal-close-button" onclick="hideModal()" class="px-6 py-2 bg-primary-purple hover:bg-violet-700 rounded-lg font-semibold">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <script id="app-data">
+        // THE DATA BELOW IS UPDATED AUTOMATICALLY WHEN YOU DOWNLOAD
+        const defaultItems = [{"id":"1768591901032","name":"undertale","url":"https://bi6zone.vercel.app/g/undertale.html","stayInPage":true},{"id":"1768592182489","name":"FULL MINECRAFT","url":"https://bi6zone.vercel.app/g/minecraft.html","stayInPage":true},{"id":"1768592194801","name":"crossy road","url":"https://bi6zone.vercel.app/g/crossy-road.html","stayInPage":true},{"id":"1768592208034","name":"paper-io","url":"https://bi6zone.vercel.app/g/paper-io-2.html","stayInPage":true},{"id":"1768592217891","name":"drive-mad","url":"https://bi6zone.vercel.app/g/drive-mad.html","stayInPage":true},{"id":"1768592261016","name":"flappy bird","url":"https://bi6zone.vercel.app/g/flappy-bird.html","stayInPage":true},{"id":"1768592271727","name":"slope","url":"https://bi6zone.vercel.app/g/slope.html","stayInPage":true}];
+        const defaultKeys = [{"key":"admin123","name":"ADMIN KEY","isAdminKey":true},{"key":"ethan123","name":"User","isAdminKey":false}];
+        const defaultSettings = {"bgColor":"#0a0a0a","orbitColor":"#ff00dd"};
+
+        let isAdmin = false;
+        let dashboardItems = [];
+        let siteKeys = []; 
+        let userSettings = {}; 
+
+        function loadData() {
+            dashboardItems = [...defaultItems]; 
+            siteKeys = [...defaultKeys];
+            userSettings = {...defaultSettings};
+        }
+
+        function saveItems() { renderButtons(); }
+        function saveKeys() { showAdminModal(); }
+        function saveSettings() { localStorage.setItem('userSettings', JSON.stringify(userSettings)); }
+
+        function initApplication() {
+            loadData();
+            updateColors(userSettings.bgColor, userSettings.orbitColor);
+            handleAccessCheck();
+        }
+
+        function showModal() { document.getElementById('main-modal').classList.remove('hidden'); }
+        function hideModal() { document.getElementById('main-modal').classList.add('hidden'); }
+
+        function launchItem(id) {
+            const item = dashboardItems.find(i => i.id === id);
+            if (!item) return;
+            if (item.stayInPage) {
+                const viewer = document.getElementById('game-viewer');
+                const frame = document.getElementById('game-frame');
+                const title = document.getElementById('viewer-title');
+                title.textContent = item.name;
+                frame.src = item.url;
+                viewer.style.display = 'flex';
+                document.body.style.overflow = 'hidden';
+            } else {
+                window.open(item.url, '_blank');
+            }
+        }
+
+        function closeGame() {
+            const viewer = document.getElementById('game-viewer');
+            const frame = document.getElementById('game-frame');
+            frame.src = ""; viewer.style.display = 'none';
+            document.body.style.overflow = 'auto';
+        }
+
+        function requestFullScreen() {
+            const frame = document.getElementById('game-frame');
+            if (frame.requestFullscreen) frame.requestFullscreen();
+            else if (frame.webkitRequestFullscreen) frame.webkitRequestFullscreen();
+        }
+
+        function handleAccessCheck() {
+            if (siteKeys && siteKeys.length > 0) showAccessModal();
+            else { renderButtons(); renderControlBar(); }
+        }
+
+        function showAccessModal() {
+            document.getElementById('modal-container').className = "bg-card-dark p-8 rounded-xl shadow-2xl w-full max-w-sm border border-primary-purple/50";
+            document.getElementById('modal-close-button').classList.add('hidden');
+            document.getElementById('modal-title').textContent = "Access Required";
+            document.getElementById('modal-content').innerHTML = `
+                <input type="password" id="accessKeyInput" placeholder="Access Key" class="w-full p-3 rounded-lg bg-dark-bg border border-primary-purple/50 text-white">
+                <p id="accessMessage" class="mt-2 text-sm text-red-400 h-5"></p>
+                <div class="flex justify-end mt-4">
+                    <button onclick="checkAccessKey()" class="px-6 py-2 bg-primary-purple hover:bg-violet-700 rounded-lg font-semibold">Unlock</button>
+                </div>`;
+            showModal();
+        }
+
+        function checkAccessKey() {
+            const inputKey = document.getElementById('accessKeyInput').value;
+            const matchedKey = siteKeys.find(k => k.key === inputKey);
+            if (matchedKey) {
+                isAdmin = matchedKey.isAdminKey || false;
+                hideModal();
+                document.getElementById('modal-close-button').classList.remove('hidden');
+                renderButtons();
+                renderControlBar();
+            } else {
+                document.getElementById('accessMessage').textContent = "Incorrect Key.";
+            }
+        }
+        
+        function renderControlBar() {
+            const controlBar = document.getElementById('admin-controls-bar');
+            controlBar.innerHTML = `<button onclick="showSettingsModal()" class="px-4 py-2 text-sm bg-card-dark text-settings-pink border border-settings-pink/50 rounded-lg font-semibold hover:bg-settings-pink/10 transition-colors">SETTINGS</button>`;
+            if (isAdmin) {
+                controlBar.insertAdjacentHTML('beforeend', `<button onclick="showAdminModal()" class="px-4 py-2 text-sm bg-card-dark text-admin-red border border-admin-red/50 rounded-lg font-semibold hover:bg-admin-red/10 transition-colors">ADMIN PANEL</button>`);
+            }
+        }
+
+        function renderButtons() {
+            const buttonContainer = document.getElementById('button-grid');
+            buttonContainer.innerHTML = ''; 
+            dashboardItems.forEach(item => {
+                const html = `
+                    <div class="orbit-container shadow-2xl shadow-primary-purple/10">
+                        <button class="w-full h-full text-center py-4 px-3 rounded-xl font-semibold uppercase tracking-wider text-sm sm:text-base"
+                                onclick="launchItem('${item.id}')">
+                            ${item.name}
+                            ${item.stayInPage ? '<br><span class="text-[10px] text-green-400">[IN-PAGE]</span>' : ''}
+                        </button>
+                    </div>`;
+                buttonContainer.insertAdjacentHTML('beforeend', html);
+            });
+        }
+
+        function showAdminModal() {
+            if (!isAdmin) return;
+            document.getElementById('modal-container').className = "bg-card-dark p-8 rounded-xl shadow-2xl w-full max-w-3xl border border-primary-purple/50 overflow-y-auto max-h-[90vh]";
+            document.getElementById('modal-title').textContent = "Admin Control Panel";
+            document.getElementById('modal-content').innerHTML = `
+                <div class="grid md:grid-cols-2 gap-8">
+                    <div>
+                        <h3 class="text-2xl font-semibold mb-4 text-primary-purple">1. Manage Buttons</h3>
+                        ${renderButtonManagement()}
+                    </div>
+                    <div>
+                        <h3 class="text-2xl font-semibold mb-4 text-primary-purple">2. Access Keys</h3>
+                        ${renderKeyManagement()}
+                        <h3 class="text-2xl font-semibold mt-8 mb-4 text-primary-purple">3. Backup HTML</h3>
+                        <p class="text-xs text-gray-400 mb-2">This saves ALL current buttons into the file permanently.</p>
+                        <button onclick="downloadHtml()" class="w-full px-6 py-3 bg-green-600 hover:bg-green-700 rounded-lg font-semibold">Download File</button>
+                    </div>
+                </div>`;
+            showModal();
+        }
+        
+        function renderKeyManagement() {
+            let keyList = `<ul class="space-y-3 mb-6 max-h-48 overflow-y-auto pr-2">`;
+            siteKeys.forEach((keyData) => {
+                keyList += `<li class="flex justify-between items-center p-3 bg-dark-bg rounded-lg border border-primary-purple/20">
+                    <span class="font-mono text-sm text-gray-300">${keyData.key}</span>
+                    <button onclick="deleteKey('${keyData.key}')" class="text-admin-red">DEL</button>
+                </li>`;
+            });
+            return keyList + `</ul><div class="bg-dark-bg p-4 rounded-lg"><input type="text" id="newKey" placeholder="Key" class="w-full p-2 mb-2 rounded bg-card-dark text-white text-sm border border-gray-700"><button onclick="addKey()" class="w-full py-2 bg-primary-purple rounded font-bold">Add Key</button></div>`;
+        }
+
+        function addKey() {
+            const k = document.getElementById('newKey').value;
+            if (k) { siteKeys.push({key: k, name: 'User', isAdminKey: false}); saveKeys(); }
+        }
+
+        function deleteKey(k) { siteKeys = siteKeys.filter(x => x.key !== k); saveKeys(); }
+
+        function renderButtonManagement() {
+            let buttonList = `<ul class="space-y-3 mb-6 max-h-48 overflow-y-auto pr-2">`;
+            dashboardItems.forEach((item) => {
+                buttonList += `<li class="flex justify-between items-center p-3 bg-dark-bg rounded-lg border border-primary-purple/20">
+                    <div><div class="font-semibold text-sm">${item.name}</div></div>
+                    <button onclick="deleteButton('${item.id}')" class="text-admin-red">DEL</button>
+                </li>`;
+            });
+            return buttonList + `</ul>
+                <div class="bg-dark-bg p-4 rounded-lg border border-primary-purple/30">
+                    <input type="text" id="newButtonName" placeholder="Name" class="w-full p-2 mb-2 rounded bg-card-dark text-white text-sm border border-gray-700">
+                    <input type="url" id="newButtonUrl" placeholder="URL" class="w-full p-2 mb-2 rounded bg-card-dark text-white text-sm border border-gray-700">
+                    <div class="flex items-center mb-3">
+                        <input type="checkbox" id="newButtonStay" class="h-4 w-4">
+                        <label for="newButtonStay" class="ml-2 text-xs text-green-400 font-bold">STAY IN PAGE</label>
+                    </div>
+                    <button onclick="addButton()" class="w-full py-2 bg-primary-purple rounded font-bold">Add Button</button>
+                </div>`;
+        }
+
+        function addButton() {
+            const name = document.getElementById('newButtonName').value;
+            const url = document.getElementById('newButtonUrl').value;
+            const stay = document.getElementById('newButtonStay').checked;
+            if (name && url) {
+                dashboardItems.push({ id: Date.now().toString(), name, url, stayInPage: stay });
+                saveItems();
+                showAdminModal();
+            }
+        }
+
+        function deleteButton(id) { dashboardItems = dashboardItems.filter(i => i.id !== id); saveItems(); showAdminModal(); }
+
+        function downloadHtml() {
+            // Get current state
+            const itemsJson = JSON.stringify(dashboardItems);
+            const keysJson = JSON.stringify(siteKeys);
+            const settingsJson = JSON.stringify(userSettings);
+
+            // Clone the document to modify it for saving
+            let docClone = document.documentElement.cloneNode(true);
+            
+            // Inject the new data into the default variables in the script tag
+            let scriptTag = docClone.querySelector('#app-data');
+            let scriptContent = scriptTag.innerHTML;
+            
+            scriptContent = scriptContent.replace(/const defaultItems = \[.*\];/, `const defaultItems = ${itemsJson};`);
+            scriptContent = scriptContent.replace(/const defaultKeys = \[.*\];/, `const defaultKeys = ${keysJson};`);
+            scriptContent = scriptContent.replace(/const defaultSettings = \{.*\};/, `const defaultSettings = ${settingsJson};`);
+            
+            scriptTag.innerHTML = scriptContent;
+
+            const blob = new Blob(['<!DOCTYPE html>\n' + docClone.outerHTML], { type: 'text/html' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'arcade_launchpad_updated.html';
+            a.click();
+        }
+
+        function updateColors(bgColor, orbitColor) {
+            const root = document.documentElement;
+            root.style.setProperty('--dark-bg', bgColor);
+            root.style.setProperty('--orbit-color-primary', orbitColor);
+        }
+
+        function showSettingsModal() {
+            document.getElementById('modal-title').textContent = "Settings";
+            document.getElementById('modal-content').innerHTML = `
+                <label class="block text-sm mb-2">Background Color</label>
+                <input type="color" id="bgColor" value="${userSettings.bgColor}" class="w-full mb-4" onchange="userSettings.bgColor=this.value; updateColors(this.value, userSettings.orbitColor); saveSettings();">
+                <label class="block text-sm mb-2">Orbit Color</label>
+                <input type="color" id="orbitColor" value="${userSettings.orbitColor}" class="w-full" onchange="userSettings.orbitColor=this.value; updateColors(userSettings.bgColor, this.value); saveSettings();">`;
+            showModal();
+        }
+
+        document.addEventListener('DOMContentLoaded', initApplication);
+    </script>
+
+</body></html>
