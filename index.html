@@ -24,6 +24,24 @@
     </script>
 
 <script>
+
+    <div class="animated-bg"></div>
+<script>
+const snowCount = 60; // number of snowflakes
+
+for (let i = 0; i < snowCount; i++) {
+    const snow = document.createElement('div');
+    snow.classList.add('snowflake');
+    snow.style.left = Math.random() * 100 + 'vw';
+    snow.style.width = snow.style.height = (Math.random() * 4 + 2) + 'px'; // 2px to 6px
+    snow.style.animationDuration = (Math.random() * 8 + 5) + 's'; // 5s to 13s
+    snow.style.animationDelay = Math.random() * 10 + 's';
+    document.body.appendChild(snow);
+}
+</script>
+
+    <script>
+    
     // 1. THE PANIC KEY (Backtick `)
     document.addEventListener('keydown', function(e) {
         if (e.key === '`') {
