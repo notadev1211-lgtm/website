@@ -25,22 +25,6 @@
 
 <script>
 
-    <div class="animated-bg"></div>
-<script>
-const snowCount = 60; // number of snowflakes
-
-for (let i = 0; i < snowCount; i++) {
-    const snow = document.createElement('div');
-    snow.classList.add('snowflake');
-    snow.style.left = Math.random() * 100 + 'vw';
-    snow.style.width = snow.style.height = (Math.random() * 4 + 2) + 'px'; // 2px to 6px
-    snow.style.animationDuration = (Math.random() * 8 + 5) + 's'; // 5s to 13s
-    snow.style.animationDelay = Math.random() * 10 + 's';
-    document.body.appendChild(snow);
-}
-</script>
-
-    <script>
     
     // 1. THE PANIC KEY (Backtick `)
     document.addEventListener('keydown', function(e) {
@@ -452,7 +436,7 @@ for (let i = 0; i < snowCount; i++) {
                             <br><span class="text-[10px] text-green-400">[IN-PAGE]</span>
                         </button>
                     </div></div>
-        
+
         <footer class="text-center mt-12 pt-8 text-gray-500 text-sm border-t border-primary-purple/20">
             <p>© 2024 Launchpad. Use Admin Panel to save changes.</p>
         </footer>
